@@ -7,12 +7,12 @@ import java.util.*;
 public class ComponentsService {
 
     public List<List<Integer>> findComponents(Graph graph) {
-        Map<Integer, List<Integer>> adj = graph.adjacencyList();
 
         List<List<Integer>> components = new ArrayList<>();
         Set<Integer> visited = new HashSet<>();
 
-        for (Integer start : adj.keySet()) {
+        // Başlangıç düğümlerini stabil sırada gez (UI/test için deterministik)
+        for (Integer start : graph.sortedNodeIds()) {
             if (visited.contains(start)) continue;
 
             List<Integer> comp = new ArrayList<>();
@@ -24,9 +24,9 @@ public class ComponentsService {
                 int u = stack.pop();
                 comp.add(u);
 
-                for (int v : adj.getOrDefault(u, List.of())) {
-                    if (!visited.contains(v)) {
-                        visited.add(v);
+                // Komşuları Graph üzerinden al (sorted)
+                for (int v : graph.getNeighbors(u)) {
+                    if (visited.add(v)) {
                         stack.push(v);
                     }
                 }
@@ -36,7 +36,7 @@ public class ComponentsService {
             components.add(comp);
         }
 
-        // büyük component önce gelsin
+        // büyük component önce gelsin (mevcut davranışı koruyor)
         components.sort((a, b) -> Integer.compare(b.size(), a.size()));
 
         return components;

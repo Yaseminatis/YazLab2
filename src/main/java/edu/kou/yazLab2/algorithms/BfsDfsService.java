@@ -7,9 +7,8 @@ import java.util.*;
 public class BfsDfsService {
 
     public List<Integer> bfs(Graph graph, int startId) {
-        Map<Integer, List<Integer>> adj = graph.adjacencyList();
-
-        if (!adj.containsKey(startId)) {
+        // start node yoksa boş döndür
+        if (graph.getNode(startId).isEmpty()) {
             return List.of();
         }
 
@@ -24,9 +23,9 @@ public class BfsDfsService {
             int u = q.poll();
             order.add(u);
 
-            for (int v : adj.getOrDefault(u, List.of())) {
-                if (!visited.contains(v)) {
-                    visited.add(v);
+            // Komşular Graph üzerinden (sorted)
+            for (int v : graph.getNeighbors(u)) {
+                if (visited.add(v)) {
                     q.add(v);
                 }
             }
@@ -36,31 +35,29 @@ public class BfsDfsService {
     }
 
     public List<Integer> dfs(Graph graph, int startId) {
-        Map<Integer, List<Integer>> adj = graph.adjacencyList();
-
-        if (!adj.containsKey(startId)) {
+        if (graph.getNode(startId).isEmpty()) {
             return List.of();
         }
 
         List<Integer> order = new ArrayList<>();
         Set<Integer> visited = new HashSet<>();
 
-        dfsRec(startId, adj, visited, order);
+        dfsRec(graph, startId, visited, order);
 
         return order;
     }
 
-    private void dfsRec(int u,
-                        Map<Integer, List<Integer>> adj,
+    private void dfsRec(Graph graph,
+                        int u,
                         Set<Integer> visited,
                         List<Integer> order) {
 
         visited.add(u);
         order.add(u);
 
-        for (int v : adj.getOrDefault(u, List.of())) {
+        for (int v : graph.getNeighbors(u)) {
             if (!visited.contains(v)) {
-                dfsRec(v, adj, visited, order);
+                dfsRec(graph, v, visited, order);
             }
         }
     }

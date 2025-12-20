@@ -2,7 +2,12 @@ package edu.kou.yazLab2.model;
 
 import java.util.Objects;
 
+/**
+ * Undirected edge.
+ * Ağırlık tutulmaz; dinamik olarak Graph içinden hesaplanır.
+ */
 public class Edge {
+
     private final int fromId;
     private final int toId;
 
@@ -11,10 +16,15 @@ public class Edge {
         this.toId = toId;
     }
 
-    public int getFromId() { return fromId; }
-    public int getToId() { return toId; }
+    public int getFromId() {
+        return fromId;
+    }
 
-    // Undirected duplicate kontrolü için normalize ediyoruz
+    public int getToId() {
+        return toId;
+    }
+
+    // Undirected duplicate kontrolü
     private int a() { return Math.min(fromId, toId); }
     private int b() { return Math.max(fromId, toId); }
 

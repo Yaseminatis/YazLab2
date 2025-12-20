@@ -6,9 +6,11 @@
 
 <HBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
-      fx:controller="edu.kou.yazLab2.MainController"
+      fx:controller="edu.kou.yazLab2.MainController">
       spacing="10"
-      alignment="CENTER">
+      alignment="CENTER"
+      prefWidth="1500"
+      prefHeight="650">
 
     <padding>
         <Insets top="10" right="10" bottom="10" left="10"/>
@@ -36,10 +38,44 @@
             <Button text="DFS Çalıştır" onAction="#onRunDfs" prefWidth="120"/>
         </HBox>
 
+        <TextArea fx:id="traversalArea"
+                  prefHeight="120"
+                  editable="false"
+                  wrapText="true"
+                  promptText="BFS / DFS sonucu burada görünecek..."/>
+
         <Separator/>
 
         <Label text="Connected Components" style="-fx-font-weight: bold;"/>
         <Button text="Component Bul" onAction="#onFindComponents" prefWidth="250"/>
+
+        <TextArea fx:id="componentsArea"
+                  prefHeight="140"
+                  editable="false"
+                  wrapText="true"
+                  promptText="Connected components sonucu burada listelenecek..."/>
+
+        <Separator/>
+
+        <Label text="En Kısa Yol" style="-fx-font-weight: bold;"/>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Başlangıç:"/>
+            <ComboBox fx:id="pathStartCombo" prefWidth="140"/>
+        </HBox>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Hedef:"/>
+            <ComboBox fx:id="pathTargetCombo" prefWidth="140"/>
+        </HBox>
+
+        <HBox spacing="10">
+            <Button text="Dijkstra" onAction="#onRunDijkstra" prefWidth="120"/>
+            <Button text="A*" onAction="#onRunAStar" prefWidth="120"/>
+        </HBox>
+
+        <Label text="Path Çıktısı" style="-fx-font-weight: bold;"/>
+        <TextArea fx:id="pathOutputArea" prefHeight="140" editable="false" wrapText="true"/>
 
         <Separator/>
 
@@ -54,19 +90,44 @@
           style="-fx-border-color: #cccccc; -fx-border-width: 1;"/>
 
     <!-- SAĞ PANEL -->
-    <VBox prefWidth="300" spacing="10">
+    <VBox prefWidth="320" spacing="10">
         <Label text="Seçili Node" style="-fx-font-weight: bold;"/>
         <Label fx:id="nodeInfoLabel" text="Yok"/>
 
         <Separator/>
 
+        <!-- ESKİ SONUÇ PANELİ -->
         <Label text="Sonuç Paneli" style="-fx-font-weight: bold;"/>
-        <ListView fx:id="resultListView" prefHeight="220"/>
+        <ListView fx:id="resultListView" prefHeight="150"/>
+
+        <Separator/>
+
+        <!-- TOP5 CENTRALITY -->
+        <Label text="Degree Centrality Top5" style="-fx-font-weight: bold;"/>
+        <TableView fx:id="centralityTable" prefHeight="130">
+            <columns>
+                <TableColumn fx:id="centralityNodeCol" text="Node" prefWidth="120" sortable="false"/>
+                <TableColumn fx:id="centralityDegreeCol" text="Degree" prefWidth="180" sortable="false"/>
+            </columns>
+        </TableView>
+        <Button text="Top5 Hesapla" onAction="#onShowTop5Centrality" prefWidth="250"/>
+
+        <Separator/>
+
+        <!-- WELSH–POWELL -->
+        <Label text="Welsh–Powell (Node → Color)" style="-fx-font-weight: bold;"/>
+        <TableView fx:id="coloringTable" prefHeight="130">
+            <columns>
+                <TableColumn fx:id="colorNodeCol" text="Node" prefWidth="120" sortable="false"/>
+                <TableColumn fx:id="colorCol" text="Color" prefWidth="180" sortable="false"/>
+            </columns>
+        </TableView>
+        <Button text="Welsh–Powell Çalıştır" onAction="#onRunWelshPowell" prefWidth="250"/>
 
         <Separator/>
 
         <Label text="Log" style="-fx-font-weight: bold;"/>
-        <TextArea fx:id="logArea" prefHeight="180" editable="false" wrapText="true"/>
+        <TextArea fx:id="logArea" prefHeight="140" editable="false" wrapText="true"/>
     </VBox>
 
 </HBox>
