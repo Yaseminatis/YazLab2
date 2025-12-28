@@ -2,25 +2,9 @@ package edu.kou.yazLab2.algorithms;
 
 import java.util.List;
 
-public class PathResult {
-
-    private final List<Integer> path;
-    private final double totalCost;
-
-    public PathResult(List<Integer> path, double totalCost) {
-        this.path = path;
-        this.totalCost = totalCost;
-    }
-
-    public List<Integer> getPath() {
-        return path;
-    }
-
-    public double getTotalCost() {
-        return totalCost;
-    }
+public record PathResult(List<Integer> path, double totalCost) {
 
     public boolean found() {
-        return path != null && !path.isEmpty();
+        return path != null && !path.isEmpty() && Double.isFinite(totalCost);
     }
 }

@@ -52,19 +52,22 @@ public class MainController {
 
     private GraphCanvas graphCanvas;
 
+    // import sırasında graph değişeceği için final OLMAMALI
     private Graph graph = new Graph();
 
     private Integer selectedNodeId = null;
     private int nextNodeId = 1;
 
+    // --- CORE SERVICES ---
     private final BfsDfsService bfsDfsService = new BfsDfsService();
     private final ComponentsService componentsService = new ComponentsService();
-
-    private final DijkstraService dijkstraService = new DijkstraService();
-    private final AStarService aStarService = new AStarService();
+    private final ShortestPathService shortestPathService = new ShortestPathService();
+    private final CentralityService centralityService = new CentralityService();
+    private final ColoringService coloringService = new ColoringService();
 
     private final GraphIO graphIO = new JsonGraphIO();
 
+    // nodeId -> renk (component / coloring için)
     private final Map<Integer, Color> nodeColors = new HashMap<>();
 
     // Path highlight için: "minId-maxId"
@@ -126,7 +129,7 @@ public class MainController {
     private void refreshCombos() {
         List<Integer> ids = graph.nodeIdsInOrder();
 
-        // Mevcut seçimleri koru
+        // mevcut seçimleri koru
         Integer currentStart = (startNodeCombo != null) ? startNodeCombo.getValue() : null;
         Integer currentPathS = (pathStartCombo != null) ? pathStartCombo.getValue() : null;
         Integer currentPathT = (pathTargetCombo != null) ? pathTargetCombo.getValue() : null;
@@ -294,6 +297,8 @@ public class MainController {
         }
     }
 
+    // -------- BFS / DFS --------
+
     @FXML
     private void onRunBfs() {
         Integer startId = (startNodeCombo != null) ? startNodeCombo.getValue() : null;
@@ -343,6 +348,8 @@ public class MainController {
 
         log("DFS sırası: " + order);
     }
+
+    // -------- Components --------
 
     @FXML
     private void onFindComponents() {
@@ -403,7 +410,7 @@ public class MainController {
             return;
         }
 
-        PathResult r = dijkstraService.shortestPath(graph, s, t);
+        PathResult r = shortestPathService.dijkstra(graph, s, t);
         showPathResult("Dijkstra", r);
     }
 
@@ -423,45 +430,45 @@ public class MainController {
             return;
         }
 
-        PathResult r = aStarService.shortestPath(graph, s, t);
+        PathResult r = shortestPathService.aStar(graph, s, t);
         showPathResult("A*", r);
     }
 
+    // ✅ PathResult RECORD uyumlu (path(), totalCost())
     private void showPathResult(String name, PathResult r) {
         highlightedEdges.clear();
 
-        if (r == null || !r.found()) {
+        if (r == null || r.path() == null || r.path().isEmpty()) {
             if (pathOutputArea != null) pathOutputArea.setText(name + ": Yol bulunamadı.");
             redraw();
             log(name + ": yol bulunamadı.");
             return;
         }
 
-        List<Integer> p = r.getPath();
+        List<Integer> p = r.path();
         for (int i = 0; i < p.size() - 1; i++) {
             highlightedEdges.add(edgeKey(p.get(i), p.get(i + 1)));
         }
 
         if (pathOutputArea != null) {
             pathOutputArea.setText(
-                    name + " Path:\n" + p + "\nToplam maliyet: " + String.format("%.2f", r.getTotalCost())
+                    name + " Path:\n" + p + "\nToplam maliyet: " + String.format("%.2f", r.totalCost())
             );
         }
 
         redraw();
-        log(name + " bulundu. Path=" + p + " cost=" + r.getTotalCost());
+        log(name + " bulundu. Path=" + p + " cost=" + r.totalCost());
     }
 
     // -------- Degree Centrality Top5 --------
-
     @FXML
     private void onShowTop5Centrality() {
-        Map<Integer, List<Integer>> adj = graph.adjacencyList();
+        // ✅ senin CentralityService metoduna uyumlu:
+        // public List<CentralityResult> top5DegreeCentrality(Graph graph)
+        List<CentralityResult> results = centralityService.top5DegreeCentrality(graph);
 
-        List<CentralityRow> rows = adj.entrySet().stream()
-                .map(e -> new CentralityRow(e.getKey(), e.getValue().size()))
-                .sorted((a, b) -> Integer.compare(b.getDegree(), a.getDegree()))
-                .limit(5)
+        List<CentralityRow> rows = results.stream()
+                .map(r -> new CentralityRow(r.getNodeId(), r.getDegree()))
                 .toList();
 
         if (centralityTable != null) {
@@ -472,50 +479,23 @@ public class MainController {
     }
 
     // -------- Welsh–Powell Coloring --------
-
     @FXML
     private void onRunWelshPowell() {
-        Map<Integer, List<Integer>> adj = graph.adjacencyList();
-
-        List<Integer> nodes = new ArrayList<>(adj.keySet());
-        nodes.sort((a, b) -> Integer.compare(adj.getOrDefault(b, List.of()).size(),
-                adj.getOrDefault(a, List.of()).size()));
-
-        Map<Integer, Integer> colorMap = new HashMap<>(); // nodeId -> colorIndex
-
-        int currentColor = 0;
-        for (Integer u : nodes) {
-            if (colorMap.containsKey(u)) continue;
-
-            colorMap.put(u, currentColor);
-
-            for (Integer v : nodes) {
-                if (colorMap.containsKey(v)) continue;
-
-                boolean ok = true;
-                for (Integer neigh : adj.getOrDefault(v, List.of())) {
-                    Integer c = colorMap.get(neigh);
-                    if (c != null && c == currentColor) {
-                        ok = false;
-                        break;
-                    }
-                }
-                if (ok) colorMap.put(v, currentColor);
-            }
-
-            currentColor++;
-        }
+        // ✅ senin ColoringService metoduna uyumlu:
+        // public List<ColoringResult> welshPowell(Graph graph)
+        List<ColoringResult> results = coloringService.welshPowell(graph);
 
         // canvas renklendirme
         nodeColors.clear();
-        for (Node n : graph.getNodes()) {
-            int cIndex = colorMap.getOrDefault(n.getId(), 0);
-            nodeColors.put(n.getId(), palette[cIndex % palette.length]);
+        for (ColoringResult r : results) {
+            int cIndex = r.getColor(); // sende ColoringResult getter adı böyle olmalı
+            nodeColors.put(r.getNodeId(), palette[Math.floorMod(cIndex, palette.length)]);
         }
 
         // tablo doldur
-        List<ColoringRow> rows = nodes.stream()
-                .map(id -> new ColoringRow(id, colorMap.getOrDefault(id, 0)))
+        List<ColoringRow> rows = results.stream()
+                .sorted(Comparator.comparingInt(ColoringResult::getNodeId))
+                .map(r -> new ColoringRow(r.getNodeId(), r.getColor()))
                 .toList();
 
         if (coloringTable != null) {
@@ -523,12 +503,13 @@ public class MainController {
         }
 
         highlightedEdges.clear();
-
         redraw();
-        log("Welsh–Powell çalıştı. Kullanılan renk sayısı: " + currentColor);
+
+        int usedColors = results.stream().map(ColoringResult::getColor).max(Integer::compareTo).orElse(0);
+        log("Welsh–Powell çalıştı. Kullanılan renk sayısı: ~" + (usedColors + 1));
     }
 
-    // ---------------- Row DTOs ----------------
+    // ---------------- Row DTOs (UI) ----------------
 
     public static class CentralityRow {
         private final IntegerProperty nodeId = new SimpleIntegerProperty();
@@ -541,7 +522,6 @@ public class MainController {
 
         public IntegerProperty nodeIdProperty() { return nodeId; }
         public IntegerProperty degreeProperty() { return degree; }
-        public int getDegree() { return degree.get(); }
     }
 
     public static class ColoringRow {
