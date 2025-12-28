@@ -229,7 +229,7 @@ public class MainController {
     @FXML
     private void onDeleteSelected() {
         if (selectedNodeId == null) {
-            log("Silinecek node yok.");
+            warn("Seçim Yok", "Silmek için önce bir düğüm seçin.");
             return;
         }
         graph.removeNode(selectedNodeId);
@@ -301,9 +301,13 @@ public class MainController {
 
     @FXML
     private void onRunBfs() {
+        if (isGraphEmpty()) {
+            warn("Graf Boş", "BFS çalıştırmak için graf üzerinde düğüm olmalı.");
+            return;
+        }
         Integer startId = (startNodeCombo != null) ? startNodeCombo.getValue() : null;
         if (startId == null) {
-            log("BFS: Başlangıç node seçilmedi!");
+            warn("Eksik Seçim", "Lütfen BFS için başlangıç düğümü seçin.");
             if (traversalArea != null) traversalArea.setText("BFS: Başlangıç node seçilmedi!");
             return;
         }
@@ -328,8 +332,7 @@ public class MainController {
     private void onRunDfs() {
         Integer startId = (startNodeCombo != null) ? startNodeCombo.getValue() : null;
         if (startId == null) {
-            log("DFS: Başlangıç node seçilmedi!");
-            if (traversalArea != null) traversalArea.setText("DFS: Başlangıç node seçilmedi!");
+            warn("Eksik Seçim", "DFS için başlangıç node seçilmelidir.");
             return;
         }
 
@@ -539,5 +542,26 @@ public class MainController {
 
     private void log(String msg) {
         if (logArea != null) logArea.appendText(msg + "\n");
+    }
+    private void warn(String title, String msg) {
+        Alert a = new Alert(Alert.AlertType.WARNING);
+        a.setTitle(title);
+        a.setHeaderText(null);
+        a.setContentText(msg);
+        a.showAndWait();
+        log("UYARI: " + title + " - " + msg);
+    }
+
+    private void error(String title, String msg) {
+        Alert a = new Alert(Alert.AlertType.ERROR);
+        a.setTitle(title);
+        a.setHeaderText(null);
+        a.setContentText(msg);
+        a.showAndWait();
+        log("HATA: " + title + " - " + msg);
+    }
+
+    private boolean isGraphEmpty() {
+        return graph == null || graph.getNodes() == null || graph.getNodes().isEmpty();
     }
 }
