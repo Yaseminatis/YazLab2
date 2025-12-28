@@ -9,9 +9,11 @@ public class Graph {
 
     private final Map<Integer, Node> nodes = new LinkedHashMap<>();
     private final Set<Edge> edges = new LinkedHashSet<>();
+
+    // Dinamik ağırlık HESAPLAMA – tek merkez
     private final DynamicWeightCalculator weightCalculator = new DynamicWeightCalculator();
 
-    // ---- NODE ----
+    // ---------------- NODE ----------------
     public void addNode(Node node) {
         if (nodes.containsKey(node.getId())) {
             throw new GraphValidationException("Aynı node id olamaz: " + node.getId());
@@ -29,7 +31,6 @@ public class Graph {
         return Optional.ofNullable(nodes.get(id));
     }
 
-    // İSTEĞE BAĞLI: Optional ile uğraşmamak için
     public Node requireNode(int id) {
         return getNode(id).orElseThrow(() ->
                 new GraphValidationException("Node bulunamadı: " + id)
@@ -40,7 +41,7 @@ public class Graph {
         return Collections.unmodifiableCollection(nodes.values());
     }
 
-    // ---- EDGE ----
+    // ---------------- EDGE ----------------
     public void addEdge(int fromId, int toId) {
         if (fromId == toId) {
             throw new GraphValidationException("Self-loop yasak: " + fromId);
@@ -65,7 +66,20 @@ public class Graph {
         return Collections.unmodifiableSet(edges);
     }
 
-    // ---- ADJACENCY LIST ----
+    // ---------------- ADJACENCY ----------------
+
+    /** Komşu listesi (undirected) */
+    public List<Integer> getNeighbors(int nodeId) {
+        List<Integer> neighbors = new ArrayList<>();
+        for (Edge e : edges) {
+            if (e.getFromId() == nodeId) neighbors.add(e.getToId());
+            else if (e.getToId() == nodeId) neighbors.add(e.getFromId());
+        }
+        Collections.sort(neighbors);
+        return neighbors;
+    }
+
+    /** BFS / DFS / Components için adjacency list */
     public Map<Integer, List<Integer>> adjacencyList() {
         Map<Integer, List<Integer>> adj = new LinkedHashMap<>();
         for (int id : nodes.keySet()) adj.put(id, new ArrayList<>());
@@ -79,7 +93,27 @@ public class Graph {
         return adj;
     }
 
-    // ---- ADJACENCY MATRIX (WEIGHTED) ----
+    // ---------------- WEIGHT ----------------
+
+    /**
+     * Dinamik edge maliyeti / ağırlığı (TEK NOKTA)
+     * Dijkstra ve A* burayı kullanacak.
+     */
+    public double edgeCost(int fromId, int toId) {
+        Node a = requireNode(fromId);
+        Node b = requireNode(toId);
+        return weightCalculator.weight(a, b);
+    }
+
+    /**
+     * Geriye dönük uyumluluk: eski isim kullanıldıysa kırılmasın diye.
+     * (İstersen tamamen kaldırabilirsin ama şimdilik güvenli.)
+     */
+    public double getEdgeWeight(int fromId, int toId) {
+        return edgeCost(fromId, toId);
+    }
+
+    /** Weighted adjacency matrix (Dijkstra / A*) */
     public double[][] adjacencyMatrix() {
         List<Integer> ids = new ArrayList<>(nodes.keySet());
         int n = ids.size();
@@ -95,10 +129,7 @@ public class Graph {
             int i = index.get(e.getFromId());
             int j = index.get(e.getToId());
 
-            Node a = nodes.get(e.getFromId());
-            Node b = nodes.get(e.getToId());
-            double w = weightCalculator.weight(a, b);
-
+            double w = edgeCost(e.getFromId(), e.getToId());
             m[i][j] = w;
             m[j][i] = w;
         }
@@ -106,12 +137,14 @@ public class Graph {
         return m;
     }
 
-    // Var olan: eklenme sırası
+    // ---------------- HELPERS ----------------
+
+    /** Eklenme sırasına göre */
     public List<Integer> nodeIdsInOrder() {
         return new ArrayList<>(nodes.keySet());
     }
 
-    // EKLENDİ: sıralı id listesi (MainController hatasını çözer)
+    /** Sıralı id listesi */
     public List<Integer> sortedNodeIds() {
         List<Integer> ids = new ArrayList<>(nodes.keySet());
         Collections.sort(ids);

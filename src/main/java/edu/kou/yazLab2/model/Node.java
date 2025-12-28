@@ -2,7 +2,13 @@ package edu.kou.yazLab2.model;
 
 import java.util.Objects;
 
+/**
+ * Graph düğümü.
+ * - id: benzersiz kimlik
+ * - x,y: konum (dinamik ağırlık hesaplarında kullanılır)
+ */
 public class Node {
+
     private final int id;
     private final double x;
     private final double y;
@@ -25,7 +31,7 @@ public class Node {
         return y;
     }
 
-
+    // Node eşitliği yalnızca id üzerinden
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
