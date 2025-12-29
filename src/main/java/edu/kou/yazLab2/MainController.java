@@ -1,6 +1,7 @@
 package edu.kou.yazLab2;
 
 import edu.kou.yazLab2.algorithms.*;
+import edu.kou.yazLab2.io.CsvGraphIO;
 import edu.kou.yazLab2.io.GraphIO;
 import edu.kou.yazLab2.io.JsonGraphIO;
 import edu.kou.yazLab2.model.Edge;
@@ -22,9 +23,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class MainController {
-
+    @FXML private TableView<PerfRow> perfTable;
+    @FXML private TableColumn<PerfRow, String> perfAlgoCol;
+    @FXML private TableColumn<PerfRow, Number> perfMsCol;
     @FXML private Pane canvasHost;
-
+    @FXML private TextField aktiflikField;
+    @FXML private TextField etkilesimField;
     // SOL PANEL
     @FXML private ComboBox<Integer> startNodeCombo;
     @FXML private TextArea traversalArea;
@@ -64,8 +68,11 @@ public class MainController {
     private final ShortestPathService shortestPathService = new ShortestPathService();
     private final CentralityService centralityService = new CentralityService();
     private final ColoringService coloringService = new ColoringService();
-
-    private final GraphIO graphIO = new JsonGraphIO();
+    // --- PERFORMANCE SERVICE ---
+    private final edu.kou.yazLab2.perf.PerformanceService performanceService =
+            new edu.kou.yazLab2.perf.PerformanceService();
+    private final GraphIO jsonIO = new JsonGraphIO();
+    private final GraphIO csvIO  = new CsvGraphIO();
 
     // nodeId -> renk (component / coloring için)
     private final Map<Integer, Color> nodeColors = new HashMap<>();
@@ -81,9 +88,85 @@ public class MainController {
 
     // ---------------- INIT ----------------
     @FXML
+    private void onRunPerformance() {
+        List<Integer> ids = graph.nodeIdsInOrder();
+        if (ids.size() < 2) {
+            log("Performans: en az 2 node gerekli.");
+            return;
+        }
+
+        Integer s = (pathStartCombo != null) ? pathStartCombo.getValue() : ids.get(0);
+        Integer t = (pathTargetCombo != null) ? pathTargetCombo.getValue() : ids.get(1);
+
+        if (s == null || t == null || s.equals(t)) {
+            // garanti fallback
+            s = ids.get(0);
+            t = ids.get(1);
+        }
+
+        var results = performanceService.runAll(graph, s, t);
+
+        if (perfTable != null) {
+            var rows = results.stream()
+                    .map(r -> new PerfRow(r.algo(), r.ms()))
+                    .toList();
+            perfTable.setItems(FXCollections.observableArrayList(rows));
+        }
+
+        log("Performans ölçümü tamamlandı. (start=" + s + ", target=" + t + ")");
+    }
+    @FXML
+    private void onUpdateSelectedNode() {
+        if (selectedNodeId == null) {
+            log("Güncelleme: seçili node yok.");
+            return;
+        }
+
+        Node n = graph.getNode(selectedNodeId).orElse(null);
+        if (n == null) return;
+
+        try {
+            double a = Double.parseDouble(aktiflikField.getText().trim());
+            double e = Double.parseDouble(etkilesimField.getText().trim());
+
+            if (a < 0 || a > 1) {
+                log("Aktiflik 0-1 arası olmalı.");
+                return;
+            }
+
+            n.setAktiflik(a);
+            n.setEtkilesim(e);
+
+            // bağlantı sayısı zaten edge’lerden geliyor (istersen n.setBaglantiSayisi(...))
+            redraw();
+            log("Node güncellendi: " + n.getId());
+        } catch (Exception ex) {
+            log("Güncelleme hatası: geçersiz değer.");
+        }
+    }
+    @FXML
     private void initialize() {
         graphCanvas = new GraphCanvas(900, 600);
         canvasHost.getChildren().add(graphCanvas);
+
+// ✅ Canvas boyutu her zaman orta panel kadar olsun
+        graphCanvas.widthProperty().bind(canvasHost.widthProperty());
+        graphCanvas.heightProperty().bind(canvasHost.heightProperty());
+
+// Pencere/orta panel boyutu değişince yeniden çiz
+        canvasHost.widthProperty().addListener((obs, o, n) -> redraw());
+        canvasHost.heightProperty().addListener((obs, o, n) -> redraw());
+//  Canvas boyutu her zaman orta panel (canvasHost) kadar olsun
+        graphCanvas.widthProperty().bind(canvasHost.widthProperty());
+        graphCanvas.heightProperty().bind(canvasHost.heightProperty());
+        //  canvasHost dışına taşan çizimler görünmesin
+        // ✅ Orta panel dışına taşan çizimler görünmesin
+        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle();
+        clip.widthProperty().bind(canvasHost.widthProperty());
+        clip.heightProperty().bind(canvasHost.heightProperty());
+        canvasHost.setClip(clip);
+        if (perfAlgoCol != null) perfAlgoCol.setCellValueFactory(c -> c.getValue().algoProperty());
+        if (perfMsCol != null) perfMsCol.setCellValueFactory(c -> c.getValue().msProperty());
 
         // TableView column bindings
         if (centralityNodeCol != null) centralityNodeCol.setCellValueFactory(c -> c.getValue().nodeIdProperty());
@@ -97,15 +180,43 @@ public class MainController {
 
             if (clickedId != null) {
                 // SHIFT + tık → EDGE EKLE
-                if (e.isShiftDown() && selectedNodeId != null && !selectedNodeId.equals(clickedId)) {
+                // CTRL + SHIFT → EDGE SİL
+                if (e.isControlDown() && e.isShiftDown()
+                        && selectedNodeId != null
+                        && !selectedNodeId.equals(clickedId)) {
+
+                    boolean removed = graph.removeEdge(selectedNodeId, clickedId);
+
+                    if (removed){
+// bağlantı sayısı güncelle
+                        graph.getNode(selectedNodeId).ifPresent(nn -> nn.setBaglantiSayisi(graph.getNeighbors(selectedNodeId).size()));
+                        graph.getNode(clickedId).ifPresent(nn -> nn.setBaglantiSayisi(graph.getNeighbors(clickedId).size()));
+                        log("Edge silindi: " + selectedNodeId + " - " + clickedId);
+
+                }  else log("Edge yoktu: " + selectedNodeId + " - " + clickedId);
+// SHIFT → EDGE EKLE
+                } else if (e.isShiftDown() && selectedNodeId != null && !selectedNodeId.equals(clickedId)) {
                     try {
                         graph.addEdge(selectedNodeId, clickedId);
                         log("Edge eklendi: " + selectedNodeId + " - " + clickedId);
+                        // bağlantı sayısı güncelle
+                        graph.getNode(selectedNodeId).ifPresent(nn -> nn.setBaglantiSayisi(graph.getNeighbors(selectedNodeId).size()));
+                        graph.getNode(clickedId).ifPresent(nn -> nn.setBaglantiSayisi(graph.getNeighbors(clickedId).size()));
                     } catch (Exception ex) {
                         log("Edge eklenemedi: " + ex.getMessage());
+
                     }
+
+// NORMAL TIK → NODE SEÇ
                 } else {
                     selectedNodeId = clickedId;
+
+                    Node n = graph.getNode(clickedId).orElse(null);
+                    if (n != null) {
+                        n.secildi();           // seçilme sayısı +1
+                        n.aktiflikGuncelle();  // aktiflik hesapla
+                    }
+
                     log("Node seçildi: " + clickedId);
                 }
             } else {
@@ -193,19 +304,9 @@ public class MainController {
             graphCanvas.drawNode(n.getX(), n.getY(), fill, selected);
         }
 
-        // SAĞ PANEL - seçili node bilgisi
-        if (nodeInfoLabel != null) {
-            if (selectedNodeId != null) {
-                Node n = graph.getNode(selectedNodeId).orElse(null);
-                if (n != null) {
-                    nodeInfoLabel.setText(
-                            "ID: " + n.getId() +
-                                    "\nX: " + (int) n.getX() +
-                                    "\nY: " + (int) n.getY()
-                    );
-                } else nodeInfoLabel.setText("Yok");
-            } else nodeInfoLabel.setText("Yok");
-        }
+
+        updateSelectedNodeInfo();
+
     }
 
     private Integer findNodeIdAt(double x, double y) {
@@ -241,6 +342,57 @@ public class MainController {
         refreshCombos();
         redraw();
     }
+    @FXML
+    private void onImportCsv() {
+        try {
+            FileChooser fc = new FileChooser();
+            fc.setTitle("CSV Graf İçe Aktar");
+            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+
+            File file = fc.showOpenDialog(canvasHost.getScene().getWindow());
+            if (file == null) {
+                log("CSV içe aktar iptal edildi.");
+                return;
+            }
+
+            graph = csvIO.load(file.toPath());
+            selectedNodeId = null;
+
+            nodeColors.clear();
+            for (Node n : graph.getNodes()) nodeColors.put(n.getId(), Color.DODGERBLUE);
+
+            recalcNextNodeId();
+            refreshCombos();
+            clearResultPanels();
+            redraw();
+
+            log("CSV içe aktarıldı: " + file.getName());
+        } catch (Exception ex) {
+            log("CSV içe aktarma hatası: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+    @FXML
+    private void onExportCsv() {
+        try {
+            FileChooser fc = new FileChooser();
+            fc.setTitle("CSV Graf Dışa Aktar");
+            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+            fc.setInitialFileName("graph.csv");
+
+            File file = fc.showSaveDialog(canvasHost.getScene().getWindow());
+            if (file == null) {
+                log("CSV dışa aktar iptal edildi.");
+                return;
+            }
+
+            csvIO.save(graph, file.toPath());
+            log("CSV dışa aktarıldı: " + file.getName());
+        } catch (Exception ex) {
+            log("CSV dışa aktarma hatası: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
 
     @FXML
     private void onImportJson() {
@@ -252,10 +404,11 @@ public class MainController {
             File file = fc.showOpenDialog(canvasHost.getScene().getWindow());
             if (file == null) {
                 log("İçe aktar iptal edildi.");
+                graph.refreshDerivedFields();
                 return;
             }
 
-            graph = graphIO.load(file.toPath());
+            graph = jsonIO.load(file.toPath());
             selectedNodeId = null;
 
             nodeColors.clear();
@@ -288,7 +441,7 @@ public class MainController {
             }
 
             Path path = file.toPath();
-            graphIO.save(graph, path);
+            jsonIO.save(graph, path);
 
             log("Dışa aktarıldı: " + file.getName());
         } catch (Exception ex) {
@@ -313,6 +466,7 @@ public class MainController {
         }
 
         List<Integer> order = bfsDfsService.bfs(graph, startId);
+        etkilesimArtir(order);
 
         if (traversalArea != null) {
             String path = order.stream().map(String::valueOf).collect(Collectors.joining(" -> "));
@@ -326,6 +480,7 @@ public class MainController {
         }
 
         log("BFS sırası: " + order);
+        updateSelectedNodeInfo();
     }
 
     @FXML
@@ -337,6 +492,7 @@ public class MainController {
         }
 
         List<Integer> order = bfsDfsService.dfs(graph, startId);
+        etkilesimArtir(order);
 
         if (traversalArea != null) {
             String path = order.stream().map(String::valueOf).collect(Collectors.joining(" -> "));
@@ -350,6 +506,7 @@ public class MainController {
         }
 
         log("DFS sırası: " + order);
+        updateSelectedNodeInfo();
     }
 
     // -------- Components --------
@@ -394,7 +551,17 @@ public class MainController {
         redraw();
         log("Components bulundu: " + comps.size() + " (renklendirildi)");
     }
+    private void etkilesimArtir(List<Integer> ids) {
+        if (ids == null) return;
 
+        for (Integer id : ids) {
+            Node n = graph.getNode(id).orElse(null);
+            if (n != null) {
+                n.ziyaretEdildi();      // ziyaret sayısı +1
+                n.etkilesimGuncelle();  // etkilesim hesapla
+            }
+        }
+    }
     // -------- Shortest Path --------
 
     @FXML
@@ -480,7 +647,19 @@ public class MainController {
 
         log("Top5 degree centrality hesaplandı.");
     }
+    public static class PerfRow {
+        private final javafx.beans.property.SimpleStringProperty algo =
+                new javafx.beans.property.SimpleStringProperty();
+        private final javafx.beans.property.SimpleDoubleProperty ms =
+                new javafx.beans.property.SimpleDoubleProperty();
 
+        public PerfRow(String algo, double ms) {
+            this.algo.set(algo);
+            this.ms.set(ms);
+        }
+        public javafx.beans.property.StringProperty algoProperty() { return algo; }
+        public javafx.beans.property.DoubleProperty msProperty() { return ms; }
+    }
     // -------- Welsh–Powell Coloring --------
     @FXML
     private void onRunWelshPowell() {
@@ -539,7 +718,29 @@ public class MainController {
         public IntegerProperty nodeIdProperty() { return nodeId; }
         public IntegerProperty colorProperty() { return color; }
     }
+    private void updateSelectedNodeInfo() {
+        if (nodeInfoLabel == null) return;
 
+        if (selectedNodeId == null) {
+            nodeInfoLabel.setText("Yok");
+            return;
+        }
+
+        Node n = graph.getNode(selectedNodeId).orElse(null);
+        if (n == null) {
+            nodeInfoLabel.setText("Yok");
+            return;
+        }
+
+        nodeInfoLabel.setText(
+                "ID: " + n.getId() +
+                        "\nX: " + (int) n.getX() +
+                        "\nY: " + (int) n.getY() +
+                        "\nAktiflik: " + String.format("%.2f", n.getAktiflik()) +
+                        "\nEtkileşim: " + String.format("%.2f", n.getEtkilesim()) +
+                        "\nBağlantı: " + n.getBaglantiSayisi()
+        );
+    }
     private void log(String msg) {
         if (logArea != null) logArea.appendText(msg + "\n");
     }

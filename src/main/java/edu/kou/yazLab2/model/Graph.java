@@ -25,6 +25,8 @@ public class Graph {
         if (!nodes.containsKey(nodeId)) return;
         nodes.remove(nodeId);
         edges.removeIf(e -> e.getFromId() == nodeId || e.getToId() == nodeId);
+        recalcConnectionCounts();
+
     }
 
     public Optional<Node> getNode(int id) {
@@ -56,10 +58,15 @@ public class Graph {
         }
 
         edges.add(edge);
+        recalcConnectionCounts();
     }
 
-    public void removeEdge(int fromId, int toId) {
-        edges.remove(new Edge(fromId, toId));
+    public boolean removeEdge(int fromId, int toId) {
+        boolean removed = edges.remove(new Edge(fromId, toId));
+        if (removed) recalcConnectionCounts();
+        return removed;
+
+
     }
 
     public Set<Edge> getEdges() {
@@ -149,5 +156,21 @@ public class Graph {
         List<Integer> ids = new ArrayList<>(nodes.keySet());
         Collections.sort(ids);
         return ids;
+    }
+    private void recalcConnectionCounts() {
+        // önce sıfırla
+        for (Node n : nodes.values()) {
+            n.setBaglantiSayisi(0);
+        }
+        // her edge iki node'un derecesini artırır (undirected)
+        for (Edge e : edges) {
+            Node a = nodes.get(e.getFromId());
+            Node b = nodes.get(e.getToId());
+            if (a != null) a.setBaglantiSayisi(a.getBaglantiSayisi() + 1);
+            if (b != null) b.setBaglantiSayisi(b.getBaglantiSayisi() + 1);
+        }
+    }
+    public void refreshDerivedFields() {
+        recalcConnectionCounts();
     }
 }
