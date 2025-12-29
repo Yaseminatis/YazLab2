@@ -6,7 +6,7 @@
 
 <HBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
-      fx:controller="edu.kou.yazLab2.MainController">
+      fx:controller="edu.kou.yazLab2.MainController"
       spacing="10"
       alignment="CENTER"
       prefWidth="1500"
@@ -16,12 +16,17 @@
         <Insets top="10" right="10" bottom="10" left="10"/>
     </padding>
 
+
     <!-- SOL PANEL -->
-    <VBox prefWidth="260" spacing="10">
+    <VBox prefWidth="280" minWidth="280" maxWidth="280" spacing="10">
         <Label text="Dosya İşlemleri" style="-fx-font-weight: bold;"/>
         <HBox spacing="10">
             <Button text="İçe Aktar (JSON)" onAction="#onImportJson"/>
             <Button text="Dışa Aktar (JSON)" onAction="#onExportJson"/>
+        </HBox>
+        <HBox spacing="10">
+            <Button text="İçe Aktar (CSV)" onAction="#onImportCsv"/>
+            <Button text="Dışa Aktar (CSV)" onAction="#onExportCsv"/>
         </HBox>
 
         <Separator/>
@@ -87,47 +92,76 @@
     <Pane fx:id="canvasHost"
           prefWidth="900"
           prefHeight="600"
+          HBox.hgrow="ALWAYS"
           style="-fx-border-color: #cccccc; -fx-border-width: 1;"/>
-
     <!-- SAĞ PANEL -->
-    <VBox prefWidth="320" spacing="10">
-        <Label text="Seçili Node" style="-fx-font-weight: bold;"/>
-        <Label fx:id="nodeInfoLabel" text="Yok"/>
 
-        <Separator/>
+    <ScrollPane prefWidth="340" minWidth="340" maxWidth="340"
+                fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+        <content>
+            <VBox spacing="8"
+                  style="-fx-padding: 10; -fx-border-color: #dddddd; -fx-border-radius: 4; -fx-background-radius: 4;">
 
-        <!-- ESKİ SONUÇ PANELİ -->
-        <Label text="Sonuç Paneli" style="-fx-font-weight: bold;"/>
-        <ListView fx:id="resultListView" prefHeight="150"/>
+                <Label text="Seçili Node" style="-fx-font-weight: bold;"/>
+                <Label fx:id="nodeInfoLabel"
+                       text="Yok"
+                       wrapText="true"
+                       prefWidth="300"
+                       minHeight="90"
+                       style="-fx-line-spacing: 2;"/>
 
-        <Separator/>
+                <Label text="Aktiflik (0-1)"/>
+                <TextField fx:id="aktiflikField" promptText="0.0 - 1.0"/>
 
-        <!-- TOP5 CENTRALITY -->
-        <Label text="Degree Centrality Top5" style="-fx-font-weight: bold;"/>
-        <TableView fx:id="centralityTable" prefHeight="130">
-            <columns>
-                <TableColumn fx:id="centralityNodeCol" text="Node" prefWidth="120" sortable="false"/>
-                <TableColumn fx:id="centralityDegreeCol" text="Degree" prefWidth="180" sortable="false"/>
-            </columns>
-        </TableView>
-        <Button text="Top5 Hesapla" onAction="#onShowTop5Centrality" prefWidth="250"/>
+                <Label text="Etkileşim"/>
+                <TextField fx:id="etkilesimField" promptText="örn: 12"/>
 
-        <Separator/>
+                <Button text="Node Güncelle" onAction="#onUpdateSelectedNode" prefWidth="250"/>
 
-        <!-- WELSH–POWELL -->
-        <Label text="Welsh–Powell (Node → Color)" style="-fx-font-weight: bold;"/>
-        <TableView fx:id="coloringTable" prefHeight="130">
-            <columns>
-                <TableColumn fx:id="colorNodeCol" text="Node" prefWidth="120" sortable="false"/>
-                <TableColumn fx:id="colorCol" text="Color" prefWidth="180" sortable="false"/>
-            </columns>
-        </TableView>
-        <Button text="Welsh–Powell Çalıştır" onAction="#onRunWelshPowell" prefWidth="250"/>
+                <Separator/>
 
-        <Separator/>
+                <Label text="Sonuç Paneli" style="-fx-font-weight: bold;"/>
+                <ListView fx:id="resultListView" prefHeight="120"/>
 
-        <Label text="Log" style="-fx-font-weight: bold;"/>
-        <TextArea fx:id="logArea" prefHeight="140" editable="false" wrapText="true"/>
-    </VBox>
+                <Separator/>
 
+                <Label text="Degree Centrality Top5" style="-fx-font-weight: bold;"/>
+                <TableView fx:id="centralityTable" prefHeight="130">
+                    <columns>
+                        <TableColumn fx:id="centralityNodeCol" text="Node" prefWidth="120" sortable="false"/>
+                        <TableColumn fx:id="centralityDegreeCol" text="Degree" prefWidth="180" sortable="false"/>
+                    </columns>
+                </TableView>
+                <Button text="Top5 Hesapla" onAction="#onShowTop5Centrality" prefWidth="250"/>
+
+                <Separator/>
+
+                <Label text="Welsh–Powell (Node → Color)" style="-fx-font-weight: bold;"/>
+                <TableView fx:id="coloringTable" prefHeight="130">
+                    <columns>
+                        <TableColumn fx:id="colorNodeCol" text="Node" prefWidth="120" sortable="false"/>
+                        <TableColumn fx:id="colorCol" text="Color" prefWidth="180" sortable="false"/>
+                    </columns>
+                </TableView>
+                <Button text="Welsh–Powell Çalıştır" onAction="#onRunWelshPowell" prefWidth="250"/>
+
+                <Separator/>
+
+                <Label text="Performans (ms)" style="-fx-font-weight: bold;"/>
+                <TableView fx:id="perfTable" prefHeight="160">
+                    <columns>
+                        <TableColumn fx:id="perfAlgoCol" text="Algoritma" prefWidth="140" sortable="false"/>
+                        <TableColumn fx:id="perfMsCol" text="Süre (ms)" prefWidth="120" sortable="false"/>
+                    </columns>
+                </TableView>
+                <Button text="Performans Ölç" onAction="#onRunPerformance" prefWidth="250"/>
+
+                <Separator/>
+
+                <Label text="Log" style="-fx-font-weight: bold;"/>
+                <TextArea fx:id="logArea" prefHeight="140" editable="false" wrapText="true"/>
+
+            </VBox>
+        </content>
+    </ScrollPane>
 </HBox>
