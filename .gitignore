@@ -7,3 +7,4 @@
 
 # Maven / build output
 target/
+run_debug.txt
