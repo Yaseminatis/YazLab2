@@ -1,16 +1,29 @@
-## YazLabProje2
-Kocaeli Üniversitesi Teknoloji Fakültesi
-Bilişim Sistemleri Mühendisliği
-Yazılım Geliştirme Laboratuvarı I – Proje 2
+# YazLabProje2  
+### Sosyal Ağ Analizi Uygulaması
 
-## 1.Proje Bilgileri
-Proje Adı: Sosyal Ağ Analizi Uygulaması
-Ders: Yazılım Geliştirme Laboratuvarı I
-Akademik Yıl: 2025–2026
+**Kocaeli Üniversitesi**  
+**Teknoloji Fakültesi – Bilişim Sistemleri Mühendisliği**  
+**Yazılım Geliştirme Laboratuvarı I | Proje 2**
+
+---
+
+## Proje Bilgileri
+
+**Proje Adı:** Sosyal Ağ Analizi Uygulaması  
+**Ders:** Yazılım Geliştirme Laboratuvarı I  
+**Akademik Yıl:** 2025 – 2026  
+
+---
 
 ## Ekip Üyeleri
-	•	Şenay Cengiz-231307027
-	•	Yasemin Atiş-231307027
+
+| Ad Soyad | Öğrenci No |
+|---------|------------|
+| Şenay Cengiz | 231307027 |
+| Yasemin Atiş | 231307023 |
+
+---
+
 ## 2. Giriş
 Bu proje kapsamında, kullanıcıların düğüm (node) ve aralarındaki ilişkilerin kenar (edge) olarak temsil edildiği bir Sosyal Ağ Analizi Uygulaması geliştirilmiştir. Uygulama, sosyal ağı dinamik olarak oluşturabilmekte, farklı algoritmalar yardımıyla ağ üzerinde analizler yapabilmekte ve sonuçları görsel olarak sunabilmektedir.
 
@@ -428,3 +441,439 @@ Bu projede Welsh–Powell algoritması:
 	•	Renklendirme sonuçlarının tablo ve grafik olarak sunulması
 
 amacıyla kullanılmıştır.
+
+## 4. Projenin Sınıf Yapısının ve Modüllerin Mermaid ile Gösterilmesi ve İşlevlerin Açıklanması
+
+Bu projede geliştirilen Sosyal Ağ Analizi Uygulaması, nesne yönelimli programlama (OOP) prensiplerine uygun olarak tasarlanmış ve modüler bir mimari ile gerçeklenmiştir. Sistem; veri modeli, algoritmalar, dosya işlemleri, performans ölçümü ve kullanıcı arayüzü olmak üzere birbirinden ayrılmış ancak birbiriyle ilişkili modüllerden oluşmaktadır.
+
+Bu bölümde, uygulamanın sınıf yapısı, modüller arasındaki ilişkiler ve her bir bileşenin üstlendiği görevler detaylı olarak açıklanmıştır.
+
+---
+
+### 4.1. Genel Mimari Yapı
+
+Uygulama aşağıdaki temel katmanlardan oluşmaktadır:
+
+- **Model Katmanı:**  
+  Sosyal ağın temelini oluşturan düğüm (Node), kenar (Edge) ve graf (Graph) yapıları bu katmanda yer almaktadır.
+
+- **Algoritma Katmanı:**  
+  BFS, DFS, Dijkstra, A*, Connected Components, Degree Centrality ve Welsh–Powell algoritmaları bu katmanda gerçekleştirilmiştir.
+
+- **Dosya İşlemleri Katmanı:**  
+  Graf verilerinin CSV ve JSON formatlarında içe ve dışa aktarılmasını sağlayan modülleri içerir.
+
+- **Performans Ölçüm Katmanı:**  
+  Algoritmaların çalışma sürelerini ölçerek kullanıcı arayüzünde tablo halinde sunar.
+
+- **Kullanıcı Arayüzü Katmanı:**  
+  JavaFX kullanılarak geliştirilen bu katman, kullanıcı ile sistem arasındaki etkileşimi sağlar.
+
+---
+
+### 4.2. Temel Sınıflar ve Görevleri
+
+#### Node Sınıfı
+Node sınıfı, sosyal ağdaki her bir kullanıcıyı temsil etmektedir.  
+Her Node nesnesi aşağıdaki özelliklere sahiptir:
+- Benzersiz düğüm kimliği (id)
+- Canvas üzerinde görselleştirme için konum bilgileri (x, y)
+- Aktiflik değeri
+- Etkileşim sayısı
+
+Bu bilgiler, dinamik ağırlık hesaplamasında ve merkezilik analizlerinde kullanılmaktadır.
+
+#### Edge Sınıfı
+Edge sınıfı, iki Node arasındaki ilişkiyi temsil eder.  
+Kenarlar yönsüzdür ve ağırlıklıdır. Kenar ağırlıkları sabit değildir; düğümlerin sayısal özelliklerine bağlı olarak dinamik şekilde hesaplanmaktadır.
+
+#### Graph Sınıfı
+Graph sınıfı, uygulamanın merkezinde yer alan ana veri yapısıdır.  
+Tüm düğümler ve kenarlar bu sınıf içerisinde tutulur. Graf, komşuluk listesi yaklaşımı ile yönetilmektedir.
+
+Graph sınıfının temel sorumlulukları:
+- Düğüm ekleme, silme ve güncelleme
+- Kenar ekleme ve silme
+- Komşuluk bilgilerini yönetme
+- Algoritmalara gerekli veri yapısını sağlama
+
+---
+
+### 4.3. Algoritma Sınıfları ve İşlevleri
+
+#### BFS ve DFS Algoritmaları
+Bu algoritmalar, seçilen bir başlangıç düğümünden erişilebilen tüm düğümleri bulmak amacıyla kullanılmıştır.
+
+- **BFS (Breadth-First Search):**  
+  Düğümleri katman katman gezerek erişilebilir kullanıcıları listeler.
+
+- **DFS (Depth-First Search):**  
+  Düğümleri derinlik öncelikli olarak gezerek erişilebilir kullanıcıları farklı bir sırada listeler.
+
+Her iki algoritma da sosyal ağdaki bağlantı yapısını analiz etmek için kullanılmıştır.
+
+#### Dijkstra ve A* Algoritmaları
+Bu algoritmalar, iki düğüm arasındaki en kısa yolu bulmak amacıyla kullanılmıştır.
+
+- **Dijkstra Algoritması:**  
+  Tüm kenar ağırlıklarını dikkate alarak en düşük maliyetli yolu hesaplar.
+
+- **A* Algoritması:**  
+  Sezgisel (heuristic) yaklaşım kullanarak en kısa yolu daha verimli şekilde bulmayı hedefler.
+
+Her iki algoritmada da kenar maliyetleri, dinamik ağırlık hesaplama modülü tarafından üretilen değerlerdir.
+
+#### Connected Components Algoritması
+Bu algoritma, grafın kaç adet bağlı bileşenden (ayrık topluluk) oluştuğunu tespit etmek için kullanılmıştır.  
+Her bağlı bileşen, sosyal ağ içerisindeki ayrı bir topluluğu temsil etmektedir.
+
+#### Degree Centrality Algoritması
+Degree Centrality algoritması, her düğümün sahip olduğu bağlantı sayısını hesaplayarak ağ içerisindeki en etkili kullanıcıları belirler.  
+Bu proje kapsamında, en yüksek dereceye sahip 5 düğüm tablo halinde kullanıcıya sunulmuştur.
+
+#### Welsh–Powell Graf Renklendirme Algoritması
+Welsh–Powell algoritması, graf renklendirme problemi için kullanılmıştır.  
+Amaç, komşu düğümlerin aynı renkte olmamasını sağlayarak grafın görsel olarak ayrıştırılmasını sağlamaktır.  
+Renklendirme sonuçları hem tablo hem de canvas üzerinde görsel olarak gösterilmiştir.
+
+---
+
+### 4.4. Dosya İşlemleri ve Performans Ölçüm Sınıfları
+
+Graf verilerinin kalıcı hale getirilmesi amacıyla CSV ve JSON formatlarında içe ve dışa aktarım işlemleri gerçekleştirilmiştir. Bu sayede uygulama kapatılıp tekrar açıldığında aynı veri seti yeniden yüklenebilmektedir.
+
+Ayrıca her algoritmanın çalışma süresi milisaniye (ms) cinsinden ölçülmüş ve kullanıcı arayüzünde yer alan **Performans (ms)** tablosunda gösterilmiştir. Bu yapı, algoritmaların verimliliklerinin karşılaştırılmasını mümkün kılmaktadır.
+
+---
+
+### 4.5. Sınıf Yapısının Mermaid Diyagramı ile Gösterimi
+
+Aşağıda uygulamanın temel sınıflarını ve aralarındaki ilişkileri gösteren Mermaid sınıf diyagramı verilmiştir.
+
+```mermaid
+classDiagram
+direction LR
+
+class Node {
+  int id
+  double x
+  double y
+  double aktiflik
+  int etkilesim
+}
+
+class Edge {
+  int from
+  int to
+  double weight
+}
+
+class Graph {
+  addNode()
+  addEdge()
+  removeNode()
+  removeEdge()
+}
+
+class BFS
+class DFS
+class Dijkstra
+class AStar
+class ConnectedComponents
+class DegreeCentrality
+class WelshPowell
+
+Graph --> Node
+Graph --> Edge
+BFS --> Graph
+DFS --> Graph
+Dijkstra --> Graph
+AStar --> Graph
+ConnectedComponents --> Graph
+DegreeCentrality --> Graph
+WelshPowell --> Graph
+```
+
+## 5. Uygulamaya Ait Açıklamalar, Ekran Görüntüleri, Test Senaryoları ve Sonuçlar
+
+Bu bölümde geliştirilen Sosyal Ağ Analizi Uygulaması’nın kullanıcı arayüzü, gerçekleştirilen test senaryoları, elde edilen çıktılar ve performans sonuçları detaylı olarak açıklanmıştır. Amaç, uygulamanın işlevsel olarak doğru çalıştığını ve isterlerde belirtilen tüm gereksinimlerin karşılandığını açık şekilde göstermektir.
+
+---
+
+### 5.1. Uygulama Arayüzünün Genel Tanıtımı
+
+Uygulama, JavaFX tabanlı grafiksel bir kullanıcı arayüzü ile geliştirilmiştir.  
+Graf yapısı, ekranın orta bölümünde canvas üzerinde görsel olarak gösterilmektedir. Sol panelde algoritma kontrolleri, sağ panelde ise düğüm bilgileri, sonuç alanları ve performans tabloları yer almaktadır.
+
+Arayüz aşağıdaki temel bölümlerden oluşmaktadır:
+
+- **Dosya İşlemleri Paneli:**  
+  Graf verilerinin CSV ve JSON formatlarında içe ve dışa aktarılmasını sağlar.
+
+- **Gezinme (BFS / DFS) Paneli:**  
+  Seçilen bir başlangıç düğümünden erişilebilen tüm düğümlerin BFS ve DFS algoritmaları ile bulunmasını sağlar.
+
+- **Connected Components Paneli:**  
+  Grafın bağlı bileşenlerini ve ayrık topluluklarını tespit eder.
+
+- **En Kısa Yol Paneli:**  
+  Dijkstra ve A* algoritmaları kullanılarak iki düğüm arasındaki en kısa yolun bulunmasını sağlar.
+
+- **Sonuç ve Analiz Paneli:**  
+  Algoritma çıktıları, Degree Centrality Top5 tablosu, Welsh–Powell renklendirme tablosu ve performans ölçümleri bu alanda gösterilmektedir.
+
+Bu yapı sayesinde kullanıcı, algoritmaları tek tek çalıştırarak sonuçları anlık ve görsel olarak inceleyebilmektedir.
+
+---
+
+### 5.2. Uygulamaya Ait Ekran Görüntüleri
+
+Bu bölümde yer alan ekran görüntüleri, geliştirilen Sosyal Ağ Analizi Uygulaması’nın işlevselliğini ve gerçekleştirilen testlerin doğruluğunu görsel olarak kanıtlamak amacıyla eklenmiştir. Sunulan görseller aşağıdaki bileşen ve algoritma çıktılarından oluşmaktadır:
+
+---
+
+**Ana uygulama arayüzü ve grafın canvas üzerindeki görünümü:**  
+Uygulamanın genel kullanıcı arayüzü, grafın canvas üzerinde çizimi, algoritma kontrol panelleri ve sonuç alanları gösterilmektedir.
+
+![Ana Uygulama Arayüzü](docs/images/ana_ekran.png)
+
+---
+
+**BFS ve DFS algoritmalarına ait gezinme sonuçları:**  
+Seçilen başlangıç düğümünden erişilebilen düğümlerin BFS ve DFS algoritmaları ile bulunması sonucu elde edilen gezinme çıktıları sunulmaktadır.
+
+![BFS Sonucu](docs/images/bfs_sonuc.png)
+
+![DFS Sonucu](docs/images/dfs_sonuc.png)
+
+---
+
+**Dijkstra ve A\* algoritmalarına ait en kısa yol çıktıları:**  
+İki düğüm arasındaki en kısa yolun, düğüm dizisi ve toplam maliyet bilgisi ile birlikte Dijkstra ve A* algoritmaları kullanılarak hesaplandığı sonuçlar gösterilmektedir.
+
+![Dijkstra En Kısa Yol](docs/images/dijikstra.png)
+
+![A* En Kısa Yol](docs/images/astar.png)
+
+---
+
+**Connected Components sonuçları:**  
+Grafın kaç adet bağlı bileşenden oluştuğunu ve her bir bileşenin hangi düğümleri içerdiğini gösteren analiz çıktıları sunulmaktadır.
+
+![Connected Components](docs/images/components.png)
+
+---
+
+**Degree Centrality (Top 5) tablosu:**  
+Düğümlerin derece değerlerine göre sıralandığı ve en yüksek dereceye sahip 5 düğümün tablo halinde gösterildiği merkezilik analizi sonuçları yer almaktadır.
+
+![Degree Centrality Top 5](docs/images/top5.png)
+
+---
+
+**Welsh–Powell graf renklendirme sonuçları:**  
+Komşu düğümlerin farklı renklerde boyandığı graf görünümü ve düğüm–renk eşleşmelerini içeren tablo gösterilmektedir.
+
+![Welsh–Powell Renklendirme](docs/images/welsh_powel.png)
+
+---
+
+**Algoritmaların çalışma sürelerinin yer aldığı Performans (ms) tablosu:**  
+BFS, DFS, Dijkstra, A*, Connected Components, Degree Centrality ve Welsh–Powell algoritmalarına ait çalışma sürelerinin milisaniye (ms) cinsinden ölçülerek sunulduğu performans tablosu yer almaktadır.
+
+![Performans Tablosu](docs/images/performans.png)
+
+---
+
+**Hatalı veri girişlerine ait uyarı mesajları:**  
+Aynı düğümün tekrar eklenmesi veya bir düğümün kendisiyle bağlantı kurulmaya çalışılması (self-loop) gibi hatalı veri girişlerinde sistem tarafından verilen uyarı mesajları gösterilmektedir.
+
+![Hatalı Veri Uyarısı](docs/images/hata_uyari.png)
+
+---
+
+### 5.3. Test Senaryoları
+
+İsterlerde belirtildiği üzere testler, farklı boyutlardaki graflar üzerinde gerçekleştirilmiştir.
+
+#### 5.3.1. Test Veri Setleri
+- **Küçük ölçekli graf:** 10–20 düğüm içeren veri seti  
+- **Orta ölçekli graf:** 50–100 düğüm içeren veri seti  
+
+Her iki veri seti de CSV ve JSON formatlarında hazırlanmış ve uygulamaya içe aktarılmıştır.
+
+---
+
+#### 5.3.2. BFS ve DFS Testleri
+
+Bu testlerde, seçilen bir başlangıç düğümünden erişilebilen tüm düğümlerin bulunması amaçlanmıştır.
+
+**Test Adımları:**
+1. Küçük ölçekli graf içe aktarılır.
+2. Başlangıç düğümü seçilir.
+3. BFS ve DFS algoritmaları ayrı ayrı çalıştırılır.
+
+**Beklenen Sonuç:**
+- Erişilebilir tüm düğümlerin sonuç alanında listelenmesi
+- Aynı düğümün birden fazla kez listelenmemesi
+- Algoritma çalışma sürelerinin performans tablosuna eklenmesi
+
+**Gözlenen Sonuç:**
+- BFS ve DFS algoritmaları doğru şekilde çalışmış ve erişilebilir tüm düğümleri listelemiştir.
+
+---
+
+#### 5.3.3. En Kısa Yol Testleri (Dijkstra ve A\*)
+
+Bu testlerde, iki düğüm arasındaki en kısa yolun ve toplam maliyetin hesaplanması amaçlanmıştır.
+
+**Test Adımları:**
+1. Başlangıç ve hedef düğümler seçilir.
+2. Dijkstra algoritması çalıştırılır.
+3. Aynı düğümler için A* algoritması çalıştırılır.
+
+**Beklenen Sonuç:**
+- En kısa yolun düğüm dizisi şeklinde gösterilmesi
+- Toplam maliyetin hesaplanması
+- A* algoritmasının Dijkstra ile benzer maliyetli sonuç üretmesi
+
+**Gözlenen Sonuç:**
+- Her iki algoritma da geçerli ve tutarlı en kısa yol sonuçları üretmiştir.
+
+---
+
+#### 5.3.4. Connected Components Testi
+
+Bu test ile grafın kaç adet bağlı bileşenden oluştuğu belirlenmiştir.
+
+**Test Adımları:**
+1. Connected Components algoritması çalıştırılır.
+
+**Beklenen Sonuç:**
+- Ayrık toplulukların listelenmesi
+- Her düğümün yalnızca bir bileşene ait olması
+
+**Gözlenen Sonuç:**
+- Grafın bağlı bileşenleri doğru şekilde tespit edilmiştir.
+
+---
+
+#### 5.3.5. Degree Centrality (Top 5) Testi
+
+Bu testte, ağ içerisindeki en etkili kullanıcıların belirlenmesi amaçlanmıştır.
+
+**Test Adımları:**
+1. Degree Centrality algoritması çalıştırılır.
+
+**Beklenen Sonuç:**
+- Her düğümün derece değerinin hesaplanması
+- En yüksek dereceye sahip 5 düğümün tablo halinde gösterilmesi
+
+**Gözlenen Sonuç:**
+- En etkili 5 düğüm doğru şekilde belirlenmiştir.
+
+---
+
+#### 5.3.6. Welsh–Powell Graf Renklendirme Testi
+
+Bu test ile komşu düğümlerin farklı renklere boyanması amaçlanmıştır.
+
+**Test Adımları:**
+1. Welsh–Powell algoritması çalıştırılır.
+
+**Beklenen Sonuç:**
+- Komşu düğümlerin aynı renkte olmaması
+- Renklendirme sonuçlarının tablo ve grafik üzerinde gösterilmesi
+
+**Gözlenen Sonuç:**
+- Graf başarıyla renklendirilmiş ve görsel ayrım sağlanmıştır.
+
+---
+
+### 5.4. Performans Testleri ve Sonuçlar
+
+İsterlere uygun olarak algoritmaların çalışma süreleri ölçülmüş ve küçük ile orta ölçekli graflar üzerinde karşılaştırılmıştır. Ölçümler, uygulama içerisinde yer alan **Performans (ms)** tablosu kullanılarak gerçekleştirilmiştir.
+
+| Veri Seti | Düğüm Sayısı | BFS (ms) | DFS (ms) | Dijkstra (ms) | A* (ms) | Components (ms) | Centrality (ms) | Welsh–Powell (ms) |
+|----------|-------------|----------|----------|---------------|---------|----------------|-----------------|-------------------|
+| Küçük    | 15          | 0.004791 | 0.002500 | 0.035125      | 0.049208 | 0.066792       | —               | 0.057041          |
+| Orta     | 80          | 0.004917 | 0.002208 | 0.088084      | 0.077667 | 0.338459       | —               | 0.308708          |
+
+Elde edilen sonuçlara göre, tüm algoritmalar orta ölçekli graflar üzerinde dahi **milisaniye mertebesinde** çalışmakta olup, isterlerde belirtilen *“makul sürelerde çalışma”* koşulu sağlanmıştır.
+> Not: Connected Components ve Welsh–Powell algoritmalarının diğer algoritmalara göre daha uzun sürede çalışması, grafın tamamını dolaşmaları ve ek kontrol adımları içermeleri nedeniyle beklenen bir durumdur.
+
+---
+
+### 5.5. Hatalı Veri Kontrolleri
+
+Uygulamada hatalı veri girişlerini engellemek amacıyla çeşitli kontroller uygulanmıştır:
+
+- Aynı düğümün tekrar eklenmesi engellenmiştir.
+- Bir düğümün kendisiyle bağlantı kurması (self-loop) engellenmiştir.
+- Hatalı veri girişlerinde kullanıcıya uyarı mesajları gösterilmiştir.
+
+Bu kontroller sayesinde sistemin kararlı ve güvenilir çalışması sağlanmıştır.
+
+## 6. Sonuç ve Tartışma
+
+Bu bölümde geliştirilen Sosyal Ağ Analizi Uygulaması’nın genel değerlendirmesi yapılmış, elde edilen kazanımlar, karşılaşılan sınırlılıklar ve gelecekte yapılabilecek geliştirmeler tartışılmıştır.
+
+---
+
+### 6.1. Projenin Genel Değerlendirmesi
+
+Bu proje kapsamında, kullanıcılar arasındaki ilişkileri modelleyen ve analiz eden bir Sosyal Ağ Analizi Uygulaması başarıyla geliştirilmiştir. Uygulama, sosyal ağ yapısını ağırlıklı ve yönsüz bir graf olarak ele almış; veri yapıları, graf algoritmaları ve görselleştirme bileşenlerini bütünleşik bir şekilde sunmuştur.
+
+Geliştirilen sistem sayesinde kullanıcılar, sosyal ağ üzerindeki bağlantıları görsel olarak inceleyebilmekte, farklı algoritmaları çalıştırarak ağın yapısı hakkında anlamlı çıkarımlar yapabilmektedir. Proje, teorik graf algoritmalarının pratik bir uygulama üzerinde nasıl kullanılabileceğini göstermesi açısından önemli bir kazanım sağlamıştır.
+
+---
+
+### 6.2. Başarılar
+
+Projede elde edilen başlıca başarılar aşağıda özetlenmiştir:
+
+- Sosyal ağ yapısı, düğüm ve kenarlardan oluşan ağırlıklı bir graf modeli ile başarıyla temsil edilmiştir.
+- BFS, DFS, Dijkstra, A*, Connected Components, Degree Centrality ve Welsh–Powell algoritmaları isterlere uygun şekilde gerçeklenmiştir.
+- Tüm algoritmalar kullanıcı arayüzü üzerinden ayrı ayrı tetiklenebilir hale getirilmiştir.
+- Kenar ağırlıkları, düğümlerin sayısal özelliklerine dayalı olarak dinamik şekilde hesaplanmış ve en kısa yol algoritmalarında etkin biçimde kullanılmıştır.
+- Küçük ve orta ölçekli graflar üzerinde algoritmalar test edilmiş, çalışma süreleri ölçülerek performans tablosunda sunulmuştur.
+- CSV ve JSON formatlarında veri içe/dışa aktarımı sağlanarak veri kalıcılığı gerçekleştirilmiştir.
+- Hatalı veri girişleri (aynı düğümün tekrar eklenmesi, self-loop oluşturulması vb.) sistem tarafından engellenmiştir.
+- JavaFX tabanlı grafiksel arayüz ile kullanıcıya etkileşimli ve anlaşılır bir kullanım deneyimi sunulmuştur.
+
+Bu başarılar, projenin işlevsel isterleri ve teknik gereksinimleri büyük ölçüde karşıladığını göstermektedir.
+
+---
+
+### 6.3. Sınırlılıklar
+
+Her ne kadar proje başarıyla tamamlanmış olsa da bazı sınırlılıklar bulunmaktadır:
+
+- Graf boyutu ve kenar yoğunluğu arttıkça algoritmaların çalışma süreleri doğal olarak artmaktadır.
+- Welsh–Powell graf renklendirme algoritması, sezgisel (greedy) bir yaklaşım kullandığı için minimum renk sayısını garanti etmemektedir.
+- A* algoritmasında kullanılan sezgisel fonksiyonun (heuristic) doğruluğu ve etkinliği, düğümlerin konum bilgilerine bağlıdır.
+- Çok büyük ölçekli (1000+ düğüm) graflarda, grafiksel arayüzün çizim performansı sınırlı kalabilir.
+- Uygulama, masaüstü tabanlı olduğu için farklı platformlarda (web/mobil) doğrudan çalıştırılamamaktadır.
+
+Bu sınırlılıklar, projenin mevcut kapsamı göz önünde bulundurulduğunda kabul edilebilir düzeydedir.
+
+---
+
+### 6.4. Olası Geliştirmeler
+
+Proje ilerleyen aşamalarda aşağıdaki yönlerde geliştirilebilir:
+
+- Daha büyük ölçekli graflar için algoritma ve çizim performansının optimize edilmesi.
+- Degree Centrality dışında betweenness ve closeness gibi farklı merkezilik ölçütlerinin eklenmesi.
+- Algoritma sonuçlarının rapor veya CSV dosyası olarak dışa aktarılabilmesi.
+- Kullanıcı arayüzüne yakınlaştırma (zoom), sürükleme (pan) ve animasyon gibi etkileşimli özelliklerin eklenmesi.
+- Birim testler (JUnit) ile algoritmaların otomatik olarak test edilmesi.
+- Web tabanlı bir arayüz geliştirilerek uygulamanın platform bağımsız hale getirilmesi.
+
+Bu geliştirmeler, uygulamanın hem akademik hem de pratik kullanım açısından daha güçlü hale gelmesini sağlayacaktır.
+
+---
+
+### 6.5. Sonuç
+
+Sonuç olarak bu proje, grafik veri yapıları ve graf algoritmalarının sosyal ağ analizi problemlerinde nasıl uygulanabileceğini göstermiştir. Geliştirilen uygulama, hem teorik bilgilerin pratiğe dökülmesini sağlamış hem de kullanıcıya görsel ve etkileşimli bir analiz ortamı sunmuştur. Proje, Yazılım Geliştirme Laboratuvarı dersi kapsamında beklenen öğrenme hedeflerini büyük ölçüde karşılamıştır.
