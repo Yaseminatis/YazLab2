@@ -635,60 +635,60 @@ Bu bölümde yer alan ekran görüntüleri, geliştirilen Sosyal Ağ Analizi Uyg
 **Ana uygulama arayüzü ve grafın canvas üzerindeki görünümü:**  
 Uygulamanın genel kullanıcı arayüzü, grafın canvas üzerinde çizimi, algoritma kontrol panelleri ve sonuç alanları gösterilmektedir.
 
-![Ana Uygulama Arayüzü](docs/images/ana_ekran.png)
+![Ana Uygulama Arayüzü](docs/images/screenshots/ana_ekran.png)
 
 ---
 
 **BFS ve DFS algoritmalarına ait gezinme sonuçları:**  
 Seçilen başlangıç düğümünden erişilebilen düğümlerin BFS ve DFS algoritmaları ile bulunması sonucu elde edilen gezinme çıktıları sunulmaktadır.
 
-![BFS Sonucu](docs/images/bfs_sonuc.png)
+![BFS Sonucu](docs/images/screenshots/bfs_sonuc.png)
 
-![DFS Sonucu](docs/images/dfs_sonuc.png)
+![DFS Sonucu](docs/images/screenshots/dfs_sonuc.png)
 
 ---
 
 **Dijkstra ve A\* algoritmalarına ait en kısa yol çıktıları:**  
 İki düğüm arasındaki en kısa yolun, düğüm dizisi ve toplam maliyet bilgisi ile birlikte Dijkstra ve A* algoritmaları kullanılarak hesaplandığı sonuçlar gösterilmektedir.
 
-![Dijkstra En Kısa Yol](docs/images/dijikstra.png)
+![Dijkstra En Kısa Yol](docs/images/screenshots/dijikstra.png)
 
-![A* En Kısa Yol](docs/images/astar.png)
+![A* En Kısa Yol](docs/images/screenshots/astar.png)
 
 ---
 
 **Connected Components sonuçları:**  
 Grafın kaç adet bağlı bileşenden oluştuğunu ve her bir bileşenin hangi düğümleri içerdiğini gösteren analiz çıktıları sunulmaktadır.
 
-![Connected Components](docs/images/components.png)
+![Connected Components](docs/images/screenshots/components.png)
 
 ---
 
 **Degree Centrality (Top 5) tablosu:**  
 Düğümlerin derece değerlerine göre sıralandığı ve en yüksek dereceye sahip 5 düğümün tablo halinde gösterildiği merkezilik analizi sonuçları yer almaktadır.
 
-![Degree Centrality Top 5](docs/images/top5.png)
+![Degree Centrality Top 5](docs/images/screenshots/top5.png)
 
 ---
 
 **Welsh–Powell graf renklendirme sonuçları:**  
 Komşu düğümlerin farklı renklerde boyandığı graf görünümü ve düğüm–renk eşleşmelerini içeren tablo gösterilmektedir.
 
-![Welsh–Powell Renklendirme](docs/images/welsh_powel.png)
+![Welsh–Powell Renklendirme](docs/images/screenshots/welsh_powel.png)
 
 ---
 
 **Algoritmaların çalışma sürelerinin yer aldığı Performans (ms) tablosu:**  
 BFS, DFS, Dijkstra, A*, Connected Components, Degree Centrality ve Welsh–Powell algoritmalarına ait çalışma sürelerinin milisaniye (ms) cinsinden ölçülerek sunulduğu performans tablosu yer almaktadır.
 
-![Performans Tablosu](docs/images/performans.png)
+![Performans Tablosu](docs/images/screenshots/performans.png)
 
 ---
 
 **Hatalı veri girişlerine ait uyarı mesajları:**  
 Aynı düğümün tekrar eklenmesi veya bir düğümün kendisiyle bağlantı kurulmaya çalışılması (self-loop) gibi hatalı veri girişlerinde sistem tarafından verilen uyarı mesajları gösterilmektedir.
 
-![Hatalı Veri Uyarısı](docs/images/hata_uyari.png)
+![Hatalı Veri Uyarısı](docs/images/screenshots/hata_uyari.png)
 
 ---
 
