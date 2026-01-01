@@ -554,45 +554,237 @@ Aşağıda uygulamanın temel sınıflarını ve aralarındaki ilişkileri göst
 classDiagram
 direction LR
 
+%% =======================
+%% MODEL
+%% =======================
 class Node {
-  int id
-  double x
-  double y
-  double aktiflik
-  int etkilesim
+  +int id
+  +double x
+  +double y
+  +double aktiflik
+  +int etkilesim
 }
 
 class Edge {
-  int from
-  int to
-  double weight
+  +int from
+  +int to
+  +double weight
 }
 
 class Graph {
-  addNode()
-  addEdge()
-  removeNode()
-  removeEdge()
+  +addNode(Node)
+  +removeNode(int)
+  +addEdge(int,int)
+  +removeEdge(int,int)
+  +getNeighbors(int)
 }
 
-class BFS
-class DFS
-class Dijkstra
-class AStar
-class ConnectedComponents
-class DegreeCentrality
-class WelshPowell
+Graph --> Node : contains
+Graph --> Edge : contains
 
-Graph --> Node
-Graph --> Edge
-BFS --> Graph
-DFS --> Graph
-Dijkstra --> Graph
-AStar --> Graph
-ConnectedComponents --> Graph
-DegreeCentrality --> Graph
-WelshPowell --> Graph
+class DynamicWeightCalculator {
+  +double calculateWeight(Node a, Node b)
+}
+Graph ..> DynamicWeightCalculator : uses
+
+class GraphValidationException {
+  +GraphValidationException(String msg)
+}
+Graph ..> GraphValidationException : throws
+
+%% =======================
+%% IO
+%% =======================
+class GraphIO {
+  <<interface>>
+  +Graph read(String path)
+  +write(Graph graph, String path)
+}
+
+class CsvGraphIO {
+  +Graph read(String path)
+  +write(Graph graph, String path)
+}
+
+class JsonGraphIO {
+  +Graph read(String path)
+  +write(Graph graph, String path)
+}
+
+GraphIO <|.. CsvGraphIO
+GraphIO <|.. JsonGraphIO
+
+class GraphDto {
+  +nodes
+  +edges
+}
+class NodeDto {
+  +int id
+  +double x
+  +double y
+  +double aktiflik
+  +int etkilesim
+}
+class EdgeDto {
+  +int from
+  +int to
+  +double weight
+}
+
+JsonGraphIO ..> GraphDto : uses
+GraphDto --> NodeDto
+GraphDto --> EdgeDto
+CsvGraphIO ..> Graph : produces/consumes
+JsonGraphIO ..> Graph : maps
+
+%% =======================
+%% ALGORITHMS
+%% =======================
+class BfsDfsService {
+  +bfs(Graph g, int startId)
+  +dfs(Graph g, int startId)
+}
+
+class DijkstraService {
+  +shortestPath(Graph g, int startId, int targetId)
+}
+
+class AStarService {
+  +shortestPath(Graph g, int startId, int targetId)
+}
+
+class ShortestPathService {
+  +runDijkstra(Graph g, int startId, int targetId)
+  +runAStar(Graph g, int startId, int targetId)
+}
+
+class ComponentsService {
+  +findComponents(Graph g)
+}
+
+class CentralityService {
+  +top5DegreeCentrality(Graph g)
+}
+
+class ColoringService {
+  +welshPowellColoring(Graph g)
+}
+
+class PathResult {
+  +path
+  +double totalCost
+}
+
+class CentralityResult {
+  +int nodeId
+  +int degree
+}
+
+class ColoringResult {
+  +int nodeId
+  +String color
+}
+
+BfsDfsService ..> Graph : uses
+DijkstraService ..> Graph : uses
+AStarService ..> Graph : uses
+ShortestPathService ..> DijkstraService
+ShortestPathService ..> AStarService
+ComponentsService ..> Graph : uses
+CentralityService ..> Graph : uses
+ColoringService ..> Graph : uses
+
+DijkstraService --> PathResult
+AStarService --> PathResult
+CentralityService --> CentralityResult
+ColoringService --> ColoringResult
+
+%% =======================
+%% PERFORMANCE
+%% =======================
+class PerformanceService {
+  +measure(String algorithmName, Runnable task)
+}
+
+class PerformanceResult {
+  +String algorithm
+  +double timeMs
+}
+
+PerformanceService --> PerformanceResult
+
+%% =======================
+%% UI
+%% =======================
+class App {
+  +start()
+}
+
+class MainController {
+  +onImportCsv()
+  +onImportJson()
+  +onExportCsv()
+  +onExportJson()
+  +onRunBfs()
+  +onRunDfs()
+  +onRunDijkstra()
+  +onRunAStar()
+  +onFindComponents()
+  +onTop5Centrality()
+  +onWelshPowell()
+}
+
+class GraphCanvas {
+  +drawGraph(Graph g)
+  +highlightPath(path)
+  +colorNodes(colors)
+}
+
+App --> MainController : initializes
+MainController --> Graph : holds/updates
+MainController ..> GraphIO : import/export
+MainController ..> BfsDfsService
+MainController ..> ShortestPathService
+MainController ..> ComponentsService
+MainController ..> CentralityService
+MainController ..> ColoringService
+MainController ..> PerformanceService : measures
+MainController ..> GraphCanvas : renders
 ```
+---
+
+### 4.6. Sınıflar ve Sorumlulukları
+
+| Katman | Sınıf | Görev / Sorumluluk |
+|------|------|---------------------|
+| **Model** | `Node` | Sosyal ağdaki kullanıcıyı temsil eder. `id`, konum (`x`,`y`), `aktiflik`, `etkilesim` gibi özellikleri taşır. |
+| **Model** | `Edge` | İki düğüm arasındaki ilişkiyi temsil eder (`from`, `to`). Kenar ağırlığını (`weight`) tutar. |
+| **Model** | `Graph` | Uygulamanın ana veri yapısıdır. Düğüm/kenar ekleme–silme ve komşuluk ilişkilerini yönetir. Algoritmalara gerekli graf verisini sağlar. |
+| **Weight** | `DynamicWeightCalculator` | İki düğümün özelliklerine göre kenar ağırlığını dinamik hesaplar (en kısa yol algoritmalarında kullanılır). |
+| **Validation** | `GraphValidationException` | Hatalı veri girişlerinde (duplicate node, self-loop vb.) fırlatılan özel hata sınıfıdır. |
+| **IO** | `GraphIO` | CSV/JSON için ortak okuma–yazma sözleşmesini tanımlar (interface). |
+| **IO** | `CsvGraphIO` | Grafı CSV formatında içe/dışa aktarır. |
+| **IO** | `JsonGraphIO` | Grafı JSON formatında içe/dışa aktarır, DTO dönüşümlerini kullanır. |
+| **IO (DTO)** | `GraphDto` | JSON serileştirme için grafın düğüm ve kenar listelerini taşır. |
+| **IO (DTO)** | `NodeDto` | JSON’da düğüm verisini taşımak için kullanılır. |
+| **IO (DTO)** | `EdgeDto` | JSON’da kenar verisini taşımak için kullanılır. |
+| **Algorithms** | `BfsDfsService` | Seçilen başlangıç düğümünden erişilebilir düğümleri BFS/DFS ile bulur. |
+| **Algorithms** | `DijkstraService` | Ağırlıklı graf üzerinde iki düğüm arasındaki en kısa yolu Dijkstra ile hesaplar. |
+| **Algorithms** | `AStarService` | Sezgisel yaklaşım kullanarak iki düğüm arasındaki en kısa yolu A* ile hesaplar. |
+| **Algorithms** | `ShortestPathService` | Dijkstra ve A* servislerini ortak bir akışta çalıştırmayı sağlayan üst servis görevi görür. |
+| **Algorithms** | `ComponentsService` | Grafın bağlı bileşenlerini (ayrık toplulukları) bulur ve listeler. |
+| **Algorithms** | `CentralityService` | Degree centrality hesaplayarak en yüksek dereceye sahip Top-5 düğümü üretir. |
+| **Algorithms** | `ColoringService` | Welsh–Powell graf renklendirme yapar ve komşu düğümlerin farklı renkte olmasını sağlar. |
+| **Results** | `PathResult` | En kısa yol çıktısını (yol dizisi + toplam maliyet) taşır. |
+| **Results** | `CentralityResult` | Bir düğümün derece (degree) değerini taşır (Top-5 listesi için). |
+| **Results** | `ColoringResult` | Bir düğümün atanan rengini taşır (renklendirme tablosu için). |
+| **Perf** | `PerformanceService` | Algoritmaların çalışma süresini ölçer ve sonuçları üretir. |
+| **Perf** | `PerformanceResult` | Algoritma adı ve süre (ms) bilgisini taşır. |
+| **UI** | `App` | JavaFX uygulamasını başlatan giriş noktasıdır. |
+| **UI** | `MainController` | Arayüzdeki butonların olaylarını yönetir; IO ve algoritma servislerini tetikler, sonuçları ekrana basar. |
+| **UI** | `GraphCanvas` | Grafın canvas üzerinde çizilmesini, yol vurgulamayı ve renklemeyi gerçekleştirir. |
+
+---
 
 ## 5. Uygulamaya Ait Açıklamalar, Ekran Görüntüleri, Test Senaryoları ve Sonuçlar
 
